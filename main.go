@@ -12,6 +12,7 @@ import (
 	"strings"
 )
 
+//go:embed frontend/dist/*
 var FS embed.FS
 
 func main() {
@@ -33,6 +34,8 @@ func main() {
 					log.Fatal(err)
 				}
 				c.DataFromReader(http.StatusOK, stat.Size(), "text/html", reader, nil)
+			} else {
+				c.Status(http.StatusNotFound)
 			}
 		})
 		router.Run(":8080")
