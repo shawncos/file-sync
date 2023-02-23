@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -24,6 +25,7 @@ func main() {
 		gin.SetMode(gin.DebugMode)
 		router := gin.Default()
 		staticFiles, _ := fs.Sub(FS, "frontend/dist")
+		router.GET("/api/v1/addresses", AddressController)
 		router.POST("/api/v1/texts", TextController)
 		router.StaticFS("/static", http.FS(staticFiles))
 		router.NoRoute(func(c *gin.Context) {
@@ -43,9 +45,9 @@ func main() {
 				c.Status(http.StatusNotFound)
 			}
 		})
-		router.Run(":8080")
+		router.Run(":12981")
 	}()
-	ui, err := lorca.New("http://localhost:8080/static/index.html", "", 800, 600)
+	ui, err := lorca.New("http://localhost:12981/static/index.html", "", 800, 600)
 	if err != nil {
 		return
 	}
@@ -84,4 +86,17 @@ func TextController(c *gin.Context) {
 		}
 		c.JSON(http.StatusOK, gin.H{"url": "/" + fullpath})
 	}
+}
+
+func AddressController(c *gin.Context) {
+	addrs, _ := net.InterfaceAddrs()
+	var result []string
+	for _, address := range addrs {
+		if ipnet, ok := address.(*net.IPNet); ok && ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				result = append(result, ipnet.IP.String())
+			}
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{"addresses": result})
 }
