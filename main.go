@@ -25,6 +25,7 @@ func main() {
 		gin.SetMode(gin.DebugMode)
 		router := gin.Default()
 		staticFiles, _ := fs.Sub(FS, "frontend/dist")
+		router.GET("/api/v1/uploads/:path", UploadsController)
 		router.GET("/api/v1/addresses", AddressController)
 		router.POST("/api/v1/texts", TextController)
 		router.StaticFS("/static", http.FS(staticFiles))
@@ -59,6 +60,29 @@ func main() {
 	}
 
 	log.Println("exiting...")
+}
+
+func GetUploadsDir() (uploads string) {
+	exe, err := os.Executable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	dir := filepath.Dir(exe)
+	uploads = filepath.Join(dir, "uploads")
+	return uploads
+}
+
+func UploadsController(c *gin.Context) {
+	if path := c.Param("path"); path != "" {
+		target := filepath.Join(GetUploadsDir(), path)
+		c.Header("Content-Description", "File Transfer")
+		c.Header("Content-Transfer-Encoding", "binary")
+		c.Header("Content-Disposition", "attachment;filename"+path)
+		c.Header("Content-Type", "application/octet-stream")
+		c.File(target)
+	} else {
+		c.Status(http.StatusNotFound)
+	}
 }
 
 func TextController(c *gin.Context) {

@@ -74,3 +74,6 @@ __debug_bin
 ######################
 .sass-cache/*
 node_modules/
+
+# 项目自定义
+/uploads
