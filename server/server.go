@@ -3,7 +3,9 @@ package server
 import (
 	"embed"
 	"github.com/gin-gonic/gin"
+	"github/shawncos/file-sync/config"
 	"github/shawncos/file-sync/server/controller"
+	"github/shawncos/file-sync/ws"
 	"io/fs"
 	"log"
 	"net/http"
@@ -22,6 +24,11 @@ func Run() {
 	router.GET("/api/v1/uploads/:path", controller.UploadsController)
 	router.GET("/api/v1/addresses", controller.AddressController)
 	router.POST("/api/v1/texts", controller.TextController)
+	hub := ws.NewHub()
+	go hub.Run()
+	router.GET("/ws", func(context *gin.Context) {
+		ws.HttpController(context, hub)
+	})
 	router.StaticFS("/static", http.FS(staticFiles))
 	router.NoRoute(func(c *gin.Context) {
 		path := c.Request.URL.Path
@@ -40,5 +47,5 @@ func Run() {
 			c.Status(http.StatusNotFound)
 		}
 	})
-	router.Run(":" + "27149")
+	router.Run(":" + config.GetPort())
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/zserge/lorca"
+	"github/shawncos/file-sync/config"
 	"github/shawncos/file-sync/server"
 	"log"
 	"os"
@@ -12,7 +13,7 @@ func main() {
 
 	go server.Run()
 
-	ui, err := lorca.New("http://localhost:27149/static/index.html", "", 800, 600)
+	ui, err := lorca.New("http://localhost:"+config.GetPort()+"/static/index.html", "", 800, 600)
 	if err != nil {
 		return
 	}
